@@ -5,19 +5,19 @@ const API_URL =
 "https://music-backend-production-10bd.up.railway.app";
 
 
-
-const $ =
-(id)=>document.getElementById(id);
-
+const $ = id =>
+document.getElementById(id);
 
 
 
+const uploadButton = $("upload");
 
-$("uploadBtn").onclick = async()=>{
+
+uploadButton.onclick = async()=>{
 
 
 const files =
-$("fileInput").files;
+$("files").files;
 
 
 const key =
@@ -71,31 +71,23 @@ file
 
 
 form.append(
-"title",
-$("title").value
-);
-
-
-
-form.append(
 "artist",
-$("artist").value
+$("artist").value.trim()
 );
 
 
 
 form.append(
 "album",
-$("album").value
+$("album").value.trim()
 );
 
 
 
 form.append(
 "artwork",
-$("artwork").value
+$("artwork").value.trim()
 );
-
 
 
 
@@ -111,7 +103,7 @@ method:"POST",
 
 headers:{
 
-"X-Admin-Key": key
+"X-Admin-Key":key
 
 },
 
@@ -120,8 +112,6 @@ body:form
 }
 
 );
-
-
 
 
 
@@ -141,7 +131,6 @@ data.error ||
 
 
 }
-
 
 
 
