@@ -1,158 +1,100 @@
 "use strict";
 
-
 const API_URL =
 "https://music-backend-production-10bd.up.railway.app";
 
+const $ = (id) => document.getElementById(id);
 
-const $ = id =>
-document.getElementById(id);
 
+$("upload").onclick = async () => {
 
+    const files = $("files").files;
+    const key = $("adminKey").value.trim();
 
-const uploadButton = $("upload");
 
+    if (!files.length) {
+        $("status").textContent = "Select files.";
+        return;
+    }
 
-uploadButton.onclick = async()=>{
 
+    if (!key) {
+        $("status").textContent = "Enter admin key.";
+        return;
+    }
 
-const files =
-$("files").files;
 
+    $("status").textContent = "Uploading...";
 
-const key =
-$("adminKey").value.trim();
 
+    try {
 
+        for (const file of files) {
 
-if(!files.length){
+            const form = new FormData();
 
-$("status").textContent =
-"Select at least one file.";
 
-return;
+            form.append(
+                "file",
+                file
+            );
 
-}
 
+            form.append(
+                "artist",
+                $("artist").value
+            );
 
 
-if(!key){
+            form.append(
+                "album",
+                $("album").value
+            );
 
-$("status").textContent =
-"Enter admin key.";
 
-return;
+            form.append(
+                "artwork",
+                $("artwork").value
+            );
 
-}
 
+            const response = await fetch(
+                `${API_URL}/upload`,
+                {
+                    method:"POST",
 
+                    headers:{
+                        "X-Admin-Key":key
+                    },
 
-$("status").textContent =
-"Uploading...";
+                    body:form
+                }
+            );
 
 
+            const data = await response.json();
 
-try {
 
+            if(!response.ok){
+                throw new Error(
+                    data.error || "Upload failed"
+                );
+            }
 
-for(const file of files){
+        }
 
 
-const form =
-new FormData();
+        $("status").textContent =
+        "✅ Upload complete";
 
 
+    } catch(err){
 
-form.append(
-"file",
-file
-);
+        console.error(err);
 
+        $("status").textContent =
+        "❌ " + err.message;
 
-
-form.append(
-"artist",
-$("artist").value.trim()
-);
-
-
-
-form.append(
-"album",
-$("album").value.trim()
-);
-
-
-
-form.append(
-"artwork",
-$("artwork").value.trim()
-);
-
-
-
-
-const response =
-await fetch(
-
-`${API_URL}/upload`,
-
-{
-
-method:"POST",
-
-headers:{
-
-"X-Admin-Key":key
-
-},
-
-body:form
-
-}
-
-);
-
-
-
-const data =
-await response.json();
-
-
-
-if(!response.ok){
-
-throw new Error(
-data.error ||
-"Upload failed"
-);
-
-}
-
-
-}
-
-
-
-$("status").textContent =
-"✅ Upload complete!";
-
-
-
-}
-
-catch(error){
-
-
-console.error(error);
-
-
-$("status").textContent =
-"❌ " + error.message;
-
-
-}
-
-
+    }
 
 };
