@@ -1,6 +1,5 @@
 "use strict";
 
-
 /*
 ====================================
  MUSICFY FRONTEND
@@ -13,19 +12,9 @@ const API_URL =
 "https://music-backend-production-10bd.up.railway.app";
 
 
-const ADMIN_KEY =
-"moneyman";
-
-
-
 let tracks = [];
 
 let currentIndex = -1;
-
-let favorites =
-JSON.parse(
-localStorage.getItem("favorites") || "[]"
-);
 
 
 
@@ -40,7 +29,6 @@ $("audio");
 
 
 
-
 /*
 ========================
  LOAD LIBRARY
@@ -50,9 +38,7 @@ $("audio");
 
 async function loadLibrary(){
 
-
-try {
-
+try{
 
 const res =
 await fetch(
@@ -74,13 +60,18 @@ renderLibrary();
 
 
 }
+
 catch(err){
 
-console.error(err);
+console.error(
+"Library loading failed:",
+err
+);
 
 }
 
 }
+
 
 
 
@@ -102,6 +93,7 @@ $("recentRow");
 
 
 recent.innerHTML="";
+
 
 
 tracks
@@ -130,11 +122,11 @@ if(tracks.length){
 
 
 $("heroTitle").textContent =
-tracks[tracks.length-1].title;
+tracks.at(-1).title;
 
 
 $("heroArtist").textContent =
-tracks[tracks.length-1].artist;
+tracks.at(-1).artist;
 
 
 }
@@ -145,26 +137,20 @@ tracks[tracks.length-1].artist;
 
 
 
-
-/*
-========================
- CARDS
-========================
-*/
 
 
 function createCard(track){
 
 
-const div =
+const card =
 document.createElement("div");
 
 
-div.className =
+card.className =
 "card";
 
 
-div.innerHTML = `
+card.innerHTML = `
 
 <img src="${track.artwork || 'https://via.placeholder.com/300'}">
 
@@ -180,12 +166,12 @@ ${track.artist}
 
 
 
-div.onclick = () =>
-playTrack(track);
+card.onclick =
+()=>playTrack(track);
 
 
 
-return div;
+return card;
 
 }
 
@@ -193,12 +179,6 @@ return div;
 
 
 
-
-/*
-========================
- ALBUMS
-========================
-*/
 
 
 function renderAlbums(){
@@ -213,9 +193,7 @@ box.innerHTML="";
 
 const albums =
 [...new Set(
-tracks.map(
-t=>t.album
-)
+tracks.map(t=>t.album)
 )];
 
 
@@ -228,20 +206,20 @@ t=>t.album===album
 );
 
 
-const card =
+box.appendChild(
 createCard({
 
 ...track,
 
 title:album
 
+})
+
+);
+
+
 });
 
-
-box.appendChild(card);
-
-
-});
 
 }
 
@@ -249,11 +227,7 @@ box.appendChild(card);
 
 
 
-/*
-========================
- ARTISTS
-========================
-*/
+
 
 
 function renderArtists(){
@@ -268,18 +242,16 @@ box.innerHTML="";
 
 const artists =
 [...new Set(
-tracks.map(
-t=>t.artist
-)
+tracks.map(t=>t.artist)
 )];
 
 
-artists.forEach(name=>{
+artists.forEach(artist=>{
 
 
 const track =
 tracks.find(
-t=>t.artist===name
+t=>t.artist===artist
 );
 
 
@@ -288,9 +260,10 @@ createCard({
 
 ...track,
 
-title:name
+title:artist
 
 })
+
 );
 
 
@@ -298,6 +271,7 @@ title:name
 
 
 }
+
 
 
 
@@ -321,6 +295,7 @@ $("libraryList");
 box.innerHTML="";
 
 
+
 list.forEach(track=>{
 
 
@@ -332,10 +307,9 @@ row.className =
 "track";
 
 
-row.innerHTML=`
+row.innerHTML = `
 
 <img src="${track.artwork || 'https://via.placeholder.com/100'}">
-
 
 <div>
 
@@ -349,18 +323,17 @@ ${track.title}
 ${track.artist}
 </span>
 
-
 </div>
 
 `;
 
 
 
-row.onclick=()=>playTrack(track);
+row.onclick =
+()=>playTrack(track);
 
 
 box.appendChild(row);
-
 
 
 });
@@ -387,8 +360,9 @@ function playTrack(track){
 
 currentIndex =
 tracks.findIndex(
-t=>t.id===track.id
+x=>x.id===track.id
 );
+
 
 
 audio.src =
@@ -407,7 +381,6 @@ $("songArtist").textContent =
 track.artist;
 
 
-
 $("playerArt").src =
 track.artwork ||
 "https://via.placeholder.com/300";
@@ -416,7 +389,10 @@ track.artwork ||
 $("play").textContent =
 "⏸";
 
+
 }
+
+
 
 
 
@@ -430,8 +406,8 @@ audio.play();
 
 $("play").textContent="⏸";
 
-
 }
+
 else{
 
 audio.pause();
@@ -448,29 +424,29 @@ $("play").textContent="▶";
 
 
 
-audio.ontimeupdate=()=>{
-
-
-if(!audio.duration)
-return;
-
-
-$("progress").value =
-(audio.currentTime /
-audio.duration)*100;
-
-
-};
-
-
 
 $("progress").oninput=e=>{
 
 
 audio.currentTime =
-(e.target.value/100)
-*
-audio.duration;
+audio.duration *
+(e.target.value/100);
+
+
+};
+
+
+
+audio.ontimeupdate=()=>{
+
+
+if(audio.duration){
+
+$("progress").value =
+(audio.currentTime /
+audio.duration)*100;
+
+}
 
 
 };
@@ -480,23 +456,17 @@ audio.duration;
 
 
 
-/*
-NEXT/PREVIOUS
-*/
-
 
 $("next").onclick=()=>{
-
-
-if(!tracks.length)
-return;
 
 
 currentIndex++;
 
 
 if(currentIndex>=tracks.length)
+
 currentIndex=0;
+
 
 
 playTrack(
@@ -517,8 +487,10 @@ currentIndex--;
 
 
 if(currentIndex<0)
+
 currentIndex =
 tracks.length-1;
+
 
 
 playTrack(
@@ -535,7 +507,6 @@ tracks[currentIndex]
 
 
 
-
 /*
 ========================
  SEARCH
@@ -543,17 +514,16 @@ tracks[currentIndex]
 */
 
 
-$("search")
-.oninput=e=>{
+$("search").oninput=e=>{
 
 
 const q =
-e.target.value
-.toLowerCase();
+e.target.value.toLowerCase();
 
 
 
-const result =
+renderLibrary(
+
 tracks.filter(t=>
 
 t.title.toLowerCase().includes(q)
@@ -566,116 +536,9 @@ t.artist.toLowerCase().includes(q)
 
 t.album.toLowerCase().includes(q)
 
-);
-
-
-
-renderLibrary(result);
-
-
-
-};
-
-
-
-
-
-
-
-/*
-========================
- UPLOAD
-========================
-*/
-
-
-$("uploadBtn").onclick =
-async()=>{
-
-
-const files =
-$("fileInput").files;
-
-
-if(!files.length)
-return;
-
-
-
-$("uploadStatus")
-.textContent =
-"Uploading...";
-
-
-
-for(const file of files){
-
-
-const form =
-new FormData();
-
-
-form.append(
-"file",
-file
-);
-
-
-
-form.append(
-"artist",
-$("artistInput").value
-);
-
-
-
-form.append(
-"album",
-$("albumInput").value
-);
-
-
-
-form.append(
-"artwork",
-$("artInput").value
-);
-
-
-
-await fetch(
-
-`${API_URL}/upload`,
-
-{
-
-method:"POST",
-
-headers:{
-
-"X-Admin-Key":
-ADMIN_KEY
-
-},
-
-body:form
-
-}
+)
 
 );
-
-
-
-}
-
-
-
-$("uploadStatus")
-.textContent =
-"Done!";
-
-
-loadLibrary();
 
 
 };
@@ -697,32 +560,32 @@ loadLibrary();
 
 document
 .querySelectorAll(".nav-item")
-.forEach(btn=>{
+.forEach(button=>{
 
 
-btn.onclick=()=>{
+button.onclick=()=>{
 
 
 document
 .querySelectorAll(".nav-item")
-.forEach(x=>
-x.classList.remove("active")
+.forEach(
+b=>b.classList.remove("active")
 );
 
 
-btn.classList.add("active");
+button.classList.add("active");
 
 
 
 document
 .querySelectorAll(".page")
-.forEach(p=>
-p.classList.remove("active")
+.forEach(
+p=>p.classList.remove("active")
 );
 
 
 
-$(btn.dataset.page)
+$(button.dataset.page)
 .classList.add("active");
 
 
@@ -733,6 +596,45 @@ $(btn.dataset.page)
 
 
 
+
+
+
+
+
+/*
+========================
+ PWA SERVICE WORKER
+========================
+*/
+
+
+if(
+"serviceWorker" in navigator
+){
+
+navigator.serviceWorker.register(
+"/service-worker.js"
+)
+
+.then(()=>{
+
+console.log(
+"Musicfy offline mode enabled"
+);
+
+})
+
+.catch(err=>{
+
+console.error(
+"Service worker error:",
+err
+);
+
+});
+
+
+}
 
 
 
