@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Musicfy</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="manifest" href="manifest.json">
+
+</head>
+
+
+<body>
+
+
+<div id="backgroundGlow"></div>
+
+
+<div class="app">
+
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+
+<div class="logo">
+
+<div class="logo-circle"></div>
+
+<span>Musicfy</span>
+
+</div>
+
+
+
+<nav>
+
+
+<button class="nav-item active" data-page="home">
+⌂
+<span>Home</span>
+</button>
+
+
+<button class="nav-item" data-page="library">
+♫
+<span>Library</span>
+</button>
+
+
+<button class="nav-item" data-page="albums">
+▣
+<span>Albums</span>
+</button>
+
+
+<button class="nav-item" data-page="artists">
+◎
+<span>Artists</span>
+</button>
+
+
+<button class="nav-item" data-page="favorites">
+♡
+<span>Favorites</span>
+</button>
+
+
+<button class="nav-item" data-page="upload">
+↑
+<span>Upload</span>
+</button>
+
+
+</nav>
+
+
+
+</aside>
+
+
+
+
+
+<!-- MAIN -->
+
+<main>
+
+
+<header class="topbar">
+
+
+<input 
+id="search"
+placeholder="Search music..."
+>
+
+
+</header>
+
+
+
+<section id="home" class="page active">
+
+
+<h1>Good evening</h1>
+
+
+<div id="hero"
+class="hero">
+
+<div>
+
+<h2 id="heroTitle">
+Recently Added
+</h2>
+
+<p id="heroArtist">
+Your music library
+</p>
+
+
+<button id="heroPlay">
+Play
+</button>
+
+
+</div>
+
+</div>
+
+
+
+<h2>
+Recently Added
+</h2>
+
+
+<div id="recentRow"
+class="music-row">
+</div>
+
+
+
+
+<h2>
+Albums
+</h2>
+
+
+<div id="albumRow"
+class="music-row">
+</div>
+
+
+
+<h2>
+Artists
+</h2>
+
+
+<div id="artistRow"
+class="music-row">
+</div>
+
+
+
+</section>
+
+
+
+
+
+<section id="library" class="page">
+
+<h1>
+Library
+</h1>
+
+
+<div id="libraryList"
+class="track-list">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="albums" class="page">
+
+<h1>
+Albums
+</h1>
+
+
+<div id="albumsPage"
+class="music-row">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="artists" class="page">
+
+<h1>
+Artists
+</h1>
+
+
+<div id="artistsPage"
+class="music-row">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="favorites" class="page">
+
+<h1>
+Favorites
+</h1>
+
+
+<div id="favoritesList"
+class="track-list">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="upload" class="page">
+
+
+<h1>
+Upload
+</h1>
+
+
+<div class="upload-box">
+
+
+<input 
+id="fileInput"
+type="file"
+accept="audio/*"
+multiple
+>
+
+
+<input
+id="artistInput"
+placeholder="Artist"
+>
+
+
+<input
+id="albumInput"
+placeholder="Album"
+>
+
+
+<input
+id="artInput"
+placeholder="Artwork URL"
+>
+
+
+
+<button id="uploadBtn">
+Upload
+</button>
+
+
+
+<p id="uploadStatus"></p>
+
+
+</div>
+
+
+
+</section>
+
+
+
+</main>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- PLAYER -->
+
+<div class="player">
+
+
+<img 
+id="playerArt"
+src=""
+>
+
+
+<div class="song-info">
+
+<strong id="songTitle">
+Nothing Playing
+</strong>
+
+
+<span id="songArtist">
+</span>
+
+</div>
+
+
+
+<div class="controls">
+
+
+<button id="previous">
+⏮
+</button>
+
+
+<button id="play">
+▶
+</button>
+
+
+<button id="next">
+⏭
+</button>
+
+
+</div>
+
+
+
+<input 
+id="progress"
+type="range"
+min="0"
+max="100"
+value="0"
+>
+
+
+
+<button id="queue">
+☰
+</button>
+
+
+
+<audio id="audio"></audio>
+
+
+</div>
+
+
+
+<script src="frontend.js"></script>
+
+
+</body>
+
+</html><!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Musicfy</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="manifest" href="manifest.json">
+
+</head>
+
+
+<body>
+
+
+<div id="backgroundGlow"></div>
+
+
+<div class="app">
+
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+
+<div class="logo">
+
+<div class="logo-circle"></div>
+
+<span>Musicfy</span>
+
+</div>
+
+
+
+<nav>
+
+
+<button class="nav-item active" data-page="home">
+⌂
+<span>Home</span>
+</button>
+
+
+<button class="nav-item" data-page="library">
+♫
+<span>Library</span>
+</button>
+
+
+<button class="nav-item" data-page="albums">
+▣
+<span>Albums</span>
+</button>
+
+
+<button class="nav-item" data-page="artists">
+◎
+<span>Artists</span>
+</button>
+
+
+<button class="nav-item" data-page="favorites">
+♡
+<span>Favorites</span>
+</button>
+
+
+<button class="nav-item" data-page="upload">
+↑
+<span>Upload</span>
+</button>
+
+
+</nav>
+
+
+
+</aside>
+
+
+
+
+
+<!-- MAIN -->
+
+<main>
+
+
+<header class="topbar">
+
+
+<input 
+id="search"
+placeholder="Search music..."
+>
+
+
+</header>
+
+
+
+<section id="home" class="page active">
+
+
+<h1>Good evening</h1>
+
+
+<div id="hero"
+class="hero">
+
+<div>
+
+<h2 id="heroTitle">
+Recently Added
+</h2>
+
+<p id="heroArtist">
+Your music library
+</p>
+
+
+<button id="heroPlay">
+Play
+</button>
+
+
+</div>
+
+</div>
+
+
+
+<h2>
+Recently Added
+</h2>
+
+
+<div id="recentRow"
+class="music-row">
+</div>
+
+
+
+
+<h2>
+Albums
+</h2>
+
+
+<div id="albumRow"
+class="music-row">
+</div>
+
+
+
+<h2>
+Artists
+</h2>
+
+
+<div id="artistRow"
+class="music-row">
+</div>
+
+
+
+</section>
+
+
+
+
+
+<section id="library" class="page">
+
+<h1>
+Library
+</h1>
+
+
+<div id="libraryList"
+class="track-list">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="albums" class="page">
+
+<h1>
+Albums
+</h1>
+
+
+<div id="albumsPage"
+class="music-row">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="artists" class="page">
+
+<h1>
+Artists
+</h1>
+
+
+<div id="artistsPage"
+class="music-row">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="favorites" class="page">
+
+<h1>
+Favorites
+</h1>
+
+
+<div id="favoritesList"
+class="track-list">
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="upload" class="page">
+
+
+<h1>
+Upload
+</h1>
+
+
+<div class="upload-box">
+
+
+<input 
+id="fileInput"
+type="file"
+accept="audio/*"
+multiple
+>
+
+
+<input
+id="artistInput"
+placeholder="Artist"
+>
+
+
+<input
+id="albumInput"
+placeholder="Album"
+>
+
+
+<input
+id="artInput"
+placeholder="Artwork URL"
+>
+
+
+
+<button id="uploadBtn">
+Upload
+</button>
+
+
+
+<p id="uploadStatus"></p>
+
+
+</div>
+
+
+
+</section>
+
+
+
+</main>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- PLAYER -->
+
+<div class="player">
+
+
+<img 
+id="playerArt"
+src=""
+>
+
+
+<div class="song-info">
+
+<strong id="songTitle">
+Nothing Playing
+</strong>
+
+
+<span id="songArtist">
+</span>
+
+</div>
+
+
+
+<div class="controls">
+
+
+<button id="previous">
+⏮
+</button>
+
+
+<button id="play">
+▶
+</button>
+
+
+<button id="next">
+⏭
+</button>
+
+
+</div>
+
+
+
+<input 
+id="progress"
+type="range"
+min="0"
+max="100"
+value="0"
+>
+
+
+
+<button id="queue">
+☰
+</button>
+
+
+
+<audio id="audio"></audio>
+
+
+</div>
+
+
+
+<script src="frontend.js"></script>
+
+
+</body>
+
+</html>
