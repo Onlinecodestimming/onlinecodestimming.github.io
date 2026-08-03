@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Musicfy Admin</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="upload-box admin-box">
+
+
+<h1>
+Musicfy Admin
+</h1>
+
+
+<p>
+Upload music to your library
+</p>
+
+
+
+<input
+id="adminKey"
+type="password"
+placeholder="Admin Key"
+>
+
+
+
+<input
+id="fileInput"
+type="file"
+accept="audio/*,video/*"
+multiple
+>
+
+
+
+<input
+id="title"
+type="text"
+placeholder="Track title (optional)"
+>
+
+
+
+<input
+id="artist"
+type="text"
+placeholder="Artist"
+>
+
+
+
+<input
+id="album"
+type="text"
+placeholder="Album"
+>
+
+
+
+<input
+id="artwork"
+type="text"
+placeholder="Artwork URL (optional)"
+>
+
+
+
+
+<button id="uploadBtn">
+
+Upload
+
+</button>
+
+
+
+
+<p id="status">
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+<script src="admin.js"></script>
+
+
+</body>
+
+</html>
