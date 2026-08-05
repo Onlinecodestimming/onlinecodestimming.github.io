@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Musicfy Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+  <div class="glow"></div>
+
+  <!-- Lock screen -->
+  <div id="lockScreen" class="lock-screen">
+    <form id="lockForm" class="lock-card">
+      <div class="lock-icon">&#128274;</div>
+      <h1>Musicfy Admin</h1>
+      <p class="lock-sub">Enter the admin token to continue.</p>
+      <input id="lockInput" type="password" placeholder="Admin token" autocomplete="off" />
+      <button type="submit" class="btn-primary">Unlock</button>
+      <p id="lockError" class="lock-error"></p>
+    </form>
+  </div>
+
+  <!-- Admin dashboard -->
+  <div id="dashboard" class="dashboard hidden">
+    <header class="admin-header">
+      <div class="admin-brand"><b>&#9835;</b> Musicfy Admin</div>
+      <nav class="admin-tabs">
+        <button class="admin-tab active" data-tab="overview">Overview</button>
+        <button class="admin-tab" data-tab="announcements">Announcements</button>
+        <button class="admin-tab" data-tab="tracks">Tracks</button>
+      </nav>
+      <button id="lockOutBtn" class="btn-secondary">Lock</button>
+    </header>
+
+    <main class="admin-main">
+
+      <!-- Overview -->
+      <section id="tab-overview" class="admin-panel active">
+        <h2>Overview</h2>
+        <div id="statsGrid" class="stats-grid">
+          <div class="muted">Loading stats…</div>
+        </div>
+        <div class="config-row">
+          <div class="config-pill" id="pillAdmin">Admin token: —</div>
+          <div class="config-pill" id="pillR2">R2 storage: —</div>
+        </div>
+      </section>
+
+      <!-- Announcements -->
+      <section id="tab-announcements" class="admin-panel">
+        <h2>Announcements</h2>
+        <p class="panel-sub">Posted announcements show as a banner to every visitor on the main site.</p>
+
+        <form id="announceForm" class="announce-form">
+          <textarea id="announceMessage" placeholder="Write an announcement…" rows="3" required></textarea>
+          <div class="announce-row">
+            <select id="announceLevel">
+              <option value="info">Info</option>
+              <option value="success">Success</option>
+              <option value="warning">Warning</option>
+            </select>
+            <button type="submit" class="btn-primary">Post Announcement</button>
+          </div>
+        </form>
+
+        <div id="announcementsList" class="announcements-list"></div>
+      </section>
+
+      <!-- Tracks -->
+      <section id="tab-tracks" class="admin-panel">
+        <h2>Track Management</h2>
+        <p class="panel-sub"><span id="trackCount">0</span> tracks in library</p>
+        <input id="trackFilter" class="track-filter" type="text" placeholder="Filter by title, artist, or album…" />
+        <div id="tracksTable" class="tracks-table"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Track edit modal -->
+  <div id="trackEditModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Edit Track</h3>
+      <label>Title <input id="teTitle" /></label>
+      <label>Artist <input id="teArtist" /></label>
+      <label>Album <input id="teAlbum" /></label>
+      <label>Artwork URL (required) <input id="teArtwork" required /></label>
+      <div class="modal-actions">
+        <button id="teCancel" class="btn-secondary">Cancel</button>
+        <button id="teSave" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
