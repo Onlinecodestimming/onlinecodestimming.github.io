@@ -4,13 +4,18 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#fa2d55"><title>Musicfy</title>
   <link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.json">
+  <!-- Include the binimum am-lyrics component -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics/dist/src/am-lyrics.min.js"></script>
 </head>
 <body>
   <div class="glow"></div>
   <div class="app">
-    <aside class="sidebar"><a class="brand" href="#home"><b>♪</b>Musicfy</a>
+    <aside class="sidebar">
+      <a class="brand" href="#home"><b>♪</b>Musicfy</a>
+      <div class="sidebar-search">
+        <label>⌕ <input id="sidebarSearch" type="search" placeholder="Search library..."></label>
+      </div>
       <nav aria-label="Main navigation">
-        <button class="nav nav-search" data-action="search" aria-label="Search">⌕ <span>Search</span></button>
         <div class="nav-section">
           <p class="nav-section-title">Listen now</p>
           <button class="nav active" data-page="home">⌂ <span>Home</span></button>
@@ -35,8 +40,6 @@
     </aside>
     
     <main>
-      <header><label>⌕ <input id="search" type="search" placeholder="Search songs, artists, or albums"></label></header>
-      
       <section id="home" class="page active">
         <p class="eyebrow">MUSICFY</p><h1>Listen now.</h1>
         <article class="hero">
@@ -49,18 +52,13 @@
         </article>
         
         <h2>Heavy Rotation</h2>
-        <p class="eyebrow" style="margin-top:-10px; margin-bottom:15px; color:var(--muted)">Based on your recent listening</p>
         <div id="heavyRotationRow" class="grid"></div>
-        
         <h2>Suggestions For You</h2>
         <div id="suggestionsRow" class="grid"></div>
-        
         <h2>Recently added</h2>
         <div id="recentRow" class="grid"></div>
-        
         <h2>Albums</h2>
         <div id="albumRow" class="grid"></div>
-        
         <h2>Artists</h2>
         <div id="artistRow" class="grid artists"></div>
       </section>
@@ -97,11 +95,16 @@
     </main>
   </div>
   
-  <footer class="player" aria-label="Music player">
+  <footer id="playerEl" class="player" aria-label="Music player">
     <div class="now-playing">
       <img id="playerArt" alt="" hidden>
       <div class="song"><strong id="songTitle">Nothing playing</strong><span id="songArtist">Choose a song to begin</span></div>
     </div>
+    
+    <div class="lyrics-container">
+      <am-lyrics id="amLyricsEl"></am-lyrics>
+    </div>
+
     <div class="center">
       <div class="controls">
         <button id="shuffle" aria-label="Shuffle">⇄</button>
@@ -118,6 +121,7 @@
     </div>
     <div class="player-actions">
       <button id="favorite" class="heart" aria-label="Favorite">♡</button>
+      <button id="fullscreenToggle" class="heart" aria-label="Fullscreen">⛶</button>
       <span aria-hidden="true">⌁</span>
       <input id="volume" aria-label="Volume" type="range" min="0" max="100" value="100">
     </div>
