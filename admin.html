@@ -1,28 +1,14 @@
-<!-- Add this inside <nav aria-label="Main navigation"> in your sidebar -->
-<div class="nav-section">
-  <p class="nav-section-title">Playlists</p>
-  <button class="nav" data-page="playlists">≣ <span>All Playlists</span></button>
-  <button class="nav" id="createPlaylistBtn">＋ <span>New Playlist</span></button>
+<div id="trackEditModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>Edit Track</h3>
+    <label>Title <input id="teTitle" /></label>
+    <label>Artist <input id="teArtist" /></label>
+    <label>Album <input id="teAlbum" /></label>
+    <label>Genre <input id="teGenre" placeholder="e.g., Pop, Hip-Hop, Electronic" /></label>
+    <label>Artwork URL (required) <input id="teArtwork" required /></label>
+    <div class="modal-actions">
+      <button id="teCancel" class="btn-secondary">Cancel</button>
+      <button id="teSave" class="btn-primary">Save</button>
+    </div>
+  </div>
 </div>
-
-<!-- Add these new sections to your <main> element -->
-<section id="home" class="page active">
-  <p class="eyebrow">MUSICFY</p><h1>Listen now.</h1>
-  <!-- Hero section remains the same... -->
-  
-  <h2>Heavy Rotation</h2>
-  <p class="eyebrow" style="margin-top:-10px; margin-bottom:15px; color:var(--muted)">Based on your recent listening</p>
-  <div id="heavyRotationRow" class="grid"></div>
-
-  <h2>Suggestions For You</h2>
-  <div id="suggestionsRow" class="grid"></div>
-
-  <h2>Recently added</h2>
-  <div id="recentRow" class="grid"></div>
-</section>
-
-<section id="playlists" class="page">
-  <p class="eyebrow">YOUR MIXES</p>
-  <h1>Playlists</h1>
-  <div id="playlistsPage" class="grid"></div>
-</section>
