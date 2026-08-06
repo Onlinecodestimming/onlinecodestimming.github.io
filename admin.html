@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Musicfy Admin</title>
-  <!-- Use system fonts in admin-style.css as well -->
   <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
@@ -34,19 +33,15 @@
     </header>
 
     <main class="admin-main">
-      <!-- Overview -->
       <section id="tab-overview" class="admin-panel active">
         <h2>Overview</h2>
-        <div id="statsGrid" class="stats-grid">
-          <div class="muted">Loading stats…</div>
-        </div>
+        <div id="statsGrid" class="stats-grid"><div class="muted">Loading stats…</div></div>
         <div class="config-row">
           <div class="config-pill" id="pillAdmin">Admin token: —</div>
           <div class="config-pill" id="pillR2">R2 storage: —</div>
         </div>
       </section>
 
-      <!-- Announcements -->
       <section id="tab-announcements" class="admin-panel">
         <h2>Announcements</h2>
         <p class="panel-sub">Posted announcements show as a banner to every visitor on the main site.</p>
@@ -64,7 +59,6 @@
         <div id="announcementsList" class="announcements-list"></div>
       </section>
 
-      <!-- Tracks -->
       <section id="tab-tracks" class="admin-panel">
         <h2>Track Management</h2>
         <p class="panel-sub"><span id="trackCount">0</span> tracks in library</p>
@@ -81,7 +75,8 @@
       <label>Title <input id="teTitle" /></label>
       <label>Artist <input id="teArtist" /></label>
       <label>Album <input id="teAlbum" /></label>
-      <label>Genre <input id="teGenre" placeholder="e.g., Pop, Hip-Hop, Electronic" /></label>
+      <label>Genre <input id="teGenre" placeholder="e.g., Pop, Hip-Hop" /></label>
+      <label>Track Number <input id="teTrackNum" type="number" min="1" placeholder="e.g., 1" /></label>
       <label>Artwork URL (required) <input id="teArtwork" required /></label>
       <div class="modal-actions">
         <button id="teCancel" class="btn-secondary">Cancel</button>
@@ -89,7 +84,6 @@
       </div>
     </div>
   </div>
-
   <script src="admin.js"></script>
 </body>
 </html>
