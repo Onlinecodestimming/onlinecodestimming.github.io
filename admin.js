@@ -1,12 +1,6 @@
 "use strict";
 const API = "https://music-backend-production-10bd.up.railway.app";
 
-// ---------- Lock / token handling ----------
-// The token is kept only in sessionStorage (cleared when the tab closes),
-// not localStorage — a small precaution since this page has full write
-// access to the library. It's still visible to anyone with devtools
-// access to this browser session, same tradeoff as the main site's
-// hardcoded token; this page is meant for you, not public visitors.
 const lockScreen = document.getElementById('lockScreen');
 const dashboard = document.getElementById('dashboard');
 const lockForm = document.getElementById('lockForm');
@@ -24,9 +18,6 @@ function clearToken() {
 }
 
 async function verifyToken(token) {
-  // /admin/stats is a real admin-only endpoint — a cheap way to confirm
-  // the token is valid before showing the dashboard, rather than trusting
-  // whatever was typed.
   try {
     const r = await fetch(API + '/admin/stats', {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -72,9 +63,6 @@ function authHeaders(extra) {
   return Object.assign({ 'Authorization': 'Bearer ' + getToken() }, extra || {});
 }
 
-// On load, if a token is already stored, verify it silently and skip
-// the lock screen instead of making the person re-type it every visit
-// within the same tab session.
 (async function init() {
   const stored = getToken();
   if (stored) {
@@ -84,7 +72,6 @@ function authHeaders(extra) {
   }
 })();
 
-// ---------- Tabs ----------
 document.querySelectorAll('.admin-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
@@ -94,7 +81,6 @@ document.querySelectorAll('.admin-tab').forEach(btn => {
   });
 });
 
-// ---------- Overview / stats ----------
 async function loadOverview() {
   const grid = document.getElementById('statsGrid');
   grid.innerHTML = '<div class="muted">Loading stats…</div>';
@@ -125,7 +111,6 @@ async function loadOverview() {
   }
 }
 
-// ---------- Announcements ----------
 const announceForm = document.getElementById('announceForm');
 const announceMessage = document.getElementById('announceMessage');
 const announceLevel = document.getElementById('announceLevel');
@@ -180,7 +165,7 @@ async function loadAnnouncements() {
         </div>
         <button class="a-delete" title="Delete">&times;</button>
       `;
-      el.querySelector('.a-message').textContent = a.message; // textContent, not innerHTML — avoids re-parsing user input as markup
+      el.querySelector('.a-message').textContent = a.message;
       el.querySelector('.a-delete').onclick = () => deleteAnnouncement(a.id);
       list.appendChild(el);
     });
@@ -206,7 +191,6 @@ async function deleteAnnouncement(id) {
   }
 }
 
-// ---------- Track management ----------
 let allTracks = [];
 
 async function loadTracks() {
@@ -248,7 +232,7 @@ function renderTracks(items) {
       </div>
     `;
     row.querySelector('.tr-title').textContent = a.name;
-    row.querySelector('.tr-sub').textContent = [a.artistName, a.albumName].filter(Boolean).join(' — ');
+    row.querySelector('.tr-sub').textContent = [a.artistName, a.albumName, a.genre].filter(Boolean).join(' — ');
     row.querySelector('.tr-edit').onclick = () => openTrackEdit(item.id, a);
     row.querySelector('.tr-delete').onclick = () => deleteTrackAdmin(item.id, a.name);
     table.appendChild(row);
@@ -281,12 +265,12 @@ async function deleteTrackAdmin(id, name) {
   }
 }
 
-// ---------- Track edit modal ----------
 let editingTrackId = null;
 const trackEditModal = document.getElementById('trackEditModal');
 const teTitle = document.getElementById('teTitle');
 const teArtist = document.getElementById('teArtist');
 const teAlbum = document.getElementById('teAlbum');
+const teGenre = document.getElementById('teGenre');
 const teArtwork = document.getElementById('teArtwork');
 
 function openTrackEdit(id, a) {
@@ -294,6 +278,7 @@ function openTrackEdit(id, a) {
   teTitle.value = a.name || '';
   teArtist.value = a.artistName || '';
   teAlbum.value = a.albumName || '';
+  teGenre.value = a.genre || '';
   teArtwork.value = (a.artwork && a.artwork.url) || '';
   trackEditModal.classList.remove('hidden');
 }
@@ -313,6 +298,7 @@ document.getElementById('teSave').onclick = async () => {
         name: teTitle.value,
         artistName: teArtist.value,
         albumName: teAlbum.value,
+        genre: teGenre.value,
         artworkUrl: teArtwork.value.trim()
       })
     });
