@@ -7,34 +7,21 @@ const lockForm = document.getElementById('lockForm');
 const lockInput = document.getElementById('lockInput');
 const lockError = document.getElementById('lockError');
 
-function getToken() {
-  return sessionStorage.getItem('musicfy-admin-token') || '';
-}
-function setToken(t) {
-  sessionStorage.setItem('musicfy-admin-token', t);
-}
-function clearToken() {
-  sessionStorage.removeItem('musicfy-admin-token');
-}
+function getToken() { return sessionStorage.getItem('musicfy-admin-token') || ''; }
+function setToken(t) { sessionStorage.setItem('musicfy-admin-token', t); }
+function clearToken() { sessionStorage.removeItem('musicfy-admin-token'); }
 
 async function verifyToken(token) {
   try {
-    const r = await fetch(API + '/admin/stats', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    const r = await fetch(API + '/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } });
     return r.status !== 403;
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
 
 async function tryUnlock(token) {
   lockError.textContent = '';
   const ok = await verifyToken(token);
-  if (!ok) {
-    lockError.textContent = 'Incorrect token.';
-    return;
-  }
+  if (!ok) { lockError.textContent = 'Incorrect token.'; return; }
   setToken(token);
   showDashboard();
 }
@@ -46,10 +33,7 @@ lockForm.addEventListener('submit', (ev) => {
   tryUnlock(token);
 });
 
-document.getElementById('lockOutBtn').addEventListener('click', () => {
-  clearToken();
-  location.reload();
-});
+document.getElementById('lockOutBtn').addEventListener('click', () => { clearToken(); location.reload(); });
 
 function showDashboard() {
   lockScreen.classList.add('hidden');
@@ -59,17 +43,11 @@ function showDashboard() {
   loadTracks();
 }
 
-function authHeaders(extra) {
-  return Object.assign({ 'Authorization': 'Bearer ' + getToken() }, extra || {});
-}
+function authHeaders(extra) { return Object.assign({ 'Authorization': 'Bearer ' + getToken() }, extra || {}); }
 
 (async function init() {
   const stored = getToken();
-  if (stored) {
-    const ok = await verifyToken(stored);
-    if (ok) { showDashboard(); return; }
-    clearToken();
-  }
+  if (stored) { const ok = await verifyToken(stored); if (ok) { showDashboard(); return; } clearToken(); }
 })();
 
 document.querySelectorAll('.admin-tab').forEach(btn => {
@@ -90,14 +68,13 @@ async function loadOverview() {
     if (!r.ok) throw new Error(j.error || 'Failed to load stats');
 
     grid.innerHTML = `
-      <div class="stat-card"><div class="stat-value">${j.trackCount}</div><div class="stat-label">Tracks</div></div>
-      <div class="stat-card"><div class="stat-value">${j.albumCount}</div><div class="stat-label">Albums</div></div>
-      <div class="stat-card"><div class="stat-value">${j.artistCount}</div><div class="stat-label">Artists</div></div>
-      <div class="stat-card"><div class="stat-value">${j.totalMB.toLocaleString()} MB</div><div class="stat-label">Storage used</div></div>
-      <div class="stat-card"><div class="stat-value">${j.coverCount}</div><div class="stat-label">Covers detected</div></div>
-      <div class="stat-card"><div class="stat-value">${j.announcementCount}</div><div class="stat-label">Announcements</div></div>
+      <div class="stat-card"><div class="stat-value">${j.trackCount||0}</div><div class="stat-label">Tracks</div></div>
+      <div class="stat-card"><div class="stat-value">${j.albumCount||0}</div><div class="stat-label">Albums</div></div>
+      <div class="stat-card"><div class="stat-value">${j.artistCount||0}</div><div class="stat-label">Artists</div></div>
+      <div class="stat-card"><div class="stat-value">${(j.totalMB||0).toLocaleString()} MB</div><div class="stat-label">Storage used</div></div>
+      <div class="stat-card"><div class="stat-value">${j.coverCount||0}</div><div class="stat-label">Covers detected</div></div>
+      <div class="stat-card"><div class="stat-value">${j.announcementCount||0}</div><div class="stat-label">Announcements</div></div>
     `;
-
     const pillAdmin = document.getElementById('pillAdmin');
     pillAdmin.textContent = 'Admin token: ' + (j.adminConfigured ? 'configured' : 'NOT SET');
     pillAdmin.className = 'config-pill ' + (j.adminConfigured ? 'ok' : 'bad');
@@ -106,8 +83,7 @@ async function loadOverview() {
     pillR2.textContent = 'R2 storage: ' + (j.r2Configured ? 'connected' : 'not configured');
     pillR2.className = 'config-pill ' + (j.r2Configured ? 'ok' : 'bad');
   } catch (e) {
-    console.error(e);
-    grid.innerHTML = '<div class="muted">Couldn\'t load stats.</div>';
+    grid.innerHTML = '<div class="muted">Stats API not found or failing. Ensure your Node.js backend handles /admin/stats.</div>';
   }
 }
 
@@ -128,15 +104,9 @@ announceForm.addEventListener('submit', async (ev) => {
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'Failed to post');
-
-    announceMessage.value = '';
-    announceLevel.value = 'info';
-    await loadAnnouncements();
-    await loadOverview();
-  } catch (e) {
-    console.error(e);
-    alert(e.message || 'Failed to post announcement');
-  }
+    announceMessage.value = ''; announceLevel.value = 'info';
+    await loadAnnouncements(); await loadOverview();
+  } catch (e) { alert(e.message || 'Failed to post announcement'); }
 });
 
 async function loadAnnouncements() {
@@ -144,80 +114,58 @@ async function loadAnnouncements() {
   list.innerHTML = '<div class="muted">Loading…</div>';
   try {
     const r = await fetch(API + '/announcements');
+    if (!r.ok) throw new Error();
     const j = await r.json();
     const items = j.announcements || [];
-
     list.innerHTML = '';
-    if (items.length === 0) {
-      list.innerHTML = '<div class="muted">No announcements yet.</div>';
-      return;
-    }
+    if (items.length === 0) { list.innerHTML = '<div class="muted">No announcements yet.</div>'; return; }
 
     items.forEach(a => {
       const el = document.createElement('div');
       el.className = 'announcement-item ' + a.level;
       const when = new Date(a.createdAt).toLocaleString();
       el.innerHTML = `
-        <span class="level-dot"></span>
-        <div class="a-body">
-          <div class="a-message"></div>
-          <div class="a-time">${escapeHtml(when)}</div>
-        </div>
+        <span class="level-dot"></span><div class="a-body"><div class="a-message"></div><div class="a-time">${escapeHtml(when)}</div></div>
         <button class="a-delete" title="Delete">&times;</button>
       `;
       el.querySelector('.a-message').textContent = a.message;
       el.querySelector('.a-delete').onclick = () => deleteAnnouncement(a.id);
       list.appendChild(el);
     });
-  } catch (e) {
-    console.error(e);
-    list.innerHTML = '<div class="muted">Couldn\'t load announcements.</div>';
-  }
+  } catch (e) { list.innerHTML = '<div class="muted">Announcements API not found. Update backend to support /announcements.</div>'; }
 }
 
 async function deleteAnnouncement(id) {
   if (!confirm('Delete this announcement?')) return;
   try {
-    const r = await fetch(API + '/announcements/' + encodeURIComponent(id), {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
+    const r = await fetch(API + '/announcements/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
     if (!r.ok) throw new Error('Delete failed');
-    await loadAnnouncements();
-    await loadOverview();
-  } catch (e) {
-    console.error(e);
-    alert('Delete failed');
-  }
+    await loadAnnouncements(); await loadOverview();
+  } catch (e) { alert('Delete failed'); }
 }
 
 let allTracks = [];
-
 async function loadTracks() {
   const table = document.getElementById('tracksTable');
   table.innerHTML = '<div class="muted">Loading…</div>';
   try {
-    const r = await fetch(API + '/library');
+    const r = await fetch(API + '/api/library');
     const j = await r.json();
-    allTracks = j.data || [];
+    // Assuming backend returns standard format for library route
+    allTracks = j.tracks || j.data || []; 
     document.getElementById('trackCount').textContent = allTracks.length;
     renderTracks(allTracks);
-  } catch (e) {
-    console.error(e);
-    table.innerHTML = '<div class="muted">Couldn\'t load tracks.</div>';
-  }
+  } catch (e) { table.innerHTML = '<div class="muted">Couldn\'t load tracks.</div>'; }
 }
 
 function renderTracks(items) {
   const table = document.getElementById('tracksTable');
   table.innerHTML = '';
-  if (items.length === 0) {
-    table.innerHTML = '<div class="muted">No tracks match.</div>';
-    return;
-  }
+  if (items.length === 0) { table.innerHTML = '<div class="muted">No tracks match.</div>'; return; }
   items.forEach(item => {
-    const a = item.attributes;
-    const art = (a.artwork && a.artwork.url) || '';
+    // Adapter if structure varies between /api/library and original /library
+    const a = item.attributes || item; 
+    const art = (a.artwork && a.artwork.url) || a.artwork || '';
     const row = document.createElement('div');
     row.className = 'track-row';
     row.innerHTML = `
@@ -231,10 +179,10 @@ function renderTracks(items) {
         <button class="tr-delete">Delete</button>
       </div>
     `;
-    row.querySelector('.tr-title').textContent = a.name;
-    row.querySelector('.tr-sub').textContent = [a.artistName, a.albumName, a.genre].filter(Boolean).join(' — ');
+    row.querySelector('.tr-title').textContent = a.name || a.title;
+    row.querySelector('.tr-sub').textContent = [a.artistName || a.artist, a.albumName || a.album, a.genre, a.trackNumber ? `Track ${a.trackNumber}` : ''].filter(Boolean).join(' — ');
     row.querySelector('.tr-edit').onclick = () => openTrackEdit(item.id, a);
-    row.querySelector('.tr-delete').onclick = () => deleteTrackAdmin(item.id, a.name);
+    row.querySelector('.tr-delete').onclick = () => deleteTrackAdmin(item.id, a.name || a.title);
     table.appendChild(row);
   });
 }
@@ -243,8 +191,8 @@ document.getElementById('trackFilter').addEventListener('input', (ev) => {
   const q = ev.target.value.toLowerCase().trim();
   if (!q) return renderTracks(allTracks);
   const filtered = allTracks.filter(item => {
-    const a = item.attributes;
-    return [a.name, a.artistName, a.albumName].some(v => (v || '').toLowerCase().includes(q));
+    const a = item.attributes || item;
+    return [a.name, a.title, a.artistName, a.artist, a.albumName, a.album].some(v => (v || '').toLowerCase().includes(q));
   });
   renderTracks(filtered);
 });
@@ -252,17 +200,10 @@ document.getElementById('trackFilter').addEventListener('input', (ev) => {
 async function deleteTrackAdmin(id, name) {
   if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
   try {
-    const r = await fetch(API + '/drive/' + encodeURIComponent(id), {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
+    const r = await fetch(API + '/drive/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
     if (!r.ok) throw new Error('Delete failed');
-    await loadTracks();
-    await loadOverview();
-  } catch (e) {
-    console.error(e);
-    alert('Delete failed');
-  }
+    await loadTracks(); await loadOverview();
+  } catch (e) { alert('Delete failed'); }
 }
 
 let editingTrackId = null;
@@ -271,24 +212,23 @@ const teTitle = document.getElementById('teTitle');
 const teArtist = document.getElementById('teArtist');
 const teAlbum = document.getElementById('teAlbum');
 const teGenre = document.getElementById('teGenre');
+const teTrackNum = document.getElementById('teTrackNum');
 const teArtwork = document.getElementById('teArtwork');
 
 function openTrackEdit(id, a) {
   editingTrackId = id;
-  teTitle.value = a.name || '';
-  teArtist.value = a.artistName || '';
-  teAlbum.value = a.albumName || '';
+  teTitle.value = a.name || a.title || '';
+  teArtist.value = a.artistName || a.artist || '';
+  teAlbum.value = a.albumName || a.album || '';
   teGenre.value = a.genre || '';
-  teArtwork.value = (a.artwork && a.artwork.url) || '';
+  teTrackNum.value = a.trackNumber || '';
+  teArtwork.value = (a.artwork && a.artwork.url) || a.artwork || '';
   trackEditModal.classList.remove('hidden');
 }
 
 document.getElementById('teCancel').onclick = () => trackEditModal.classList.add('hidden');
 document.getElementById('teSave').onclick = async () => {
-  if (!teArtwork.value.trim()) {
-    alert('Artwork URL is required.');
-    return;
-  }
+  if (!teArtwork.value.trim()) { alert('Artwork URL is required.'); return; }
   try {
     const r = await fetch(API + '/drive/edit', {
       method: 'POST',
@@ -299,6 +239,7 @@ document.getElementById('teSave').onclick = async () => {
         artistName: teArtist.value,
         albumName: teAlbum.value,
         genre: teGenre.value,
+        trackNumber: teTrackNum.value ? parseInt(teTrackNum.value, 10) : null,
         artworkUrl: teArtwork.value.trim()
       })
     });
@@ -306,10 +247,7 @@ document.getElementById('teSave').onclick = async () => {
     if (!r.ok) throw new Error(j.error || 'Save failed');
     trackEditModal.classList.add('hidden');
     await loadTracks();
-  } catch (e) {
-    console.error(e);
-    alert(e.message || 'Save failed');
-  }
+  } catch (e) { alert(e.message || 'Save failed'); }
 };
 
 function escapeHtml(str) {
