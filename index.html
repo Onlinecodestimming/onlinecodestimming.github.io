@@ -6,262 +6,456 @@
 <title>Music Stream</title>
 <style>
     :root {
-        --bg-color: #ffffff;
+        --bg-main: #ffffff;
+        --bg-sidebar: #f5f5f7;
+        --bg-player: rgba(255, 255, 255, 0.85);
         --text-primary: #1d1d1f;
         --text-secondary: #86868b;
         --border-color: #d2d2d7;
-        --hover-bg: #f5f5f7;
-        --accent: #fa243c; 
+        --accent: #fa243c;
+        --hover-bg: #e8e8ed;
     }
     
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        background-color: var(--bg-color);
+        background-color: var(--bg-main);
         color: var(--text-primary);
         margin: 0;
-        padding: 20px 40px;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .header-section {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
+        height: 100vh;
+        overflow: hidden;
     }
 
-    .header {
-        font-size: 34px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-
-    .tabs {
+    /* Sidebar Styles */
+    .sidebar {
+        width: 260px;
+        background-color: var(--bg-sidebar);
+        border-right: 1px solid var(--border-color);
+        padding: 20px 0;
         display: flex;
-        gap: 15px;
+        flex-direction: column;
+        overflow-y: auto;
     }
 
-    .tab {
-        cursor: pointer;
+    .sidebar-section {
+        margin-bottom: 24px;
+    }
+
+    .sidebar-title {
+        font-size: 12px;
         font-weight: 600;
         color: var(--text-secondary);
+        padding: 0 20px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    
-    .tab.active {
+
+    .nav-item {
+        padding: 8px 20px;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-primary);
+        transition: background 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active {
+        background-color: var(--hover-bg);
         color: var(--accent);
     }
 
-    .song-list {
+    /* Main Content Styles */
+    .main-content {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+        padding-bottom: 120px; /* Space for bottom player */
+    }
+
+    .header-title {
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 24px;
+    }
+
+    .track-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        border-top: 1px solid var(--border-color);
     }
 
-    .song-item {
+    .track-item {
         display: flex;
         align-items: center;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background 0.2s ease;
+        padding: 12px 8px;
         border-bottom: 1px solid #f0f0f0;
-    }
-
-    .song-item:hover {
-        background-color: var(--hover-bg);
-        cursor: pointer;
-    }
-
-    .album-art {
-        width: 48px;
-        height: 48px;
         border-radius: 6px;
+        transition: background 0.2s;
+    }
+
+    .track-item:hover {
+        background-color: var(--hover-bg);
+    }
+
+    .track-art {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
         background-color: var(--border-color);
         margin-right: 16px;
         object-fit: cover;
     }
 
-    .song-info {
-        flex-grow: 1;
+    .track-info {
+        flex: 1;
         display: flex;
         flex-direction: column;
+        cursor: pointer;
     }
 
-    .song-title {
-        font-size: 16px;
+    .track-title {
+        font-size: 15px;
         color: var(--text-primary);
+        margin-bottom: 4px;
     }
 
-    .song-artist {
-        font-size: 14px;
+    .track-artist {
+        font-size: 13px;
         color: var(--text-secondary);
     }
 
-    .song-options {
+    .track-album {
+        flex: 1;
+        font-size: 13px;
         color: var(--text-secondary);
-        font-size: 18px;
+        display: none;
+    }
+
+    @media(min-width: 800px) {
+        .track-album { display: block; }
+    }
+
+    .track-options {
+        color: var(--text-secondary);
+        font-size: 20px;
         padding: 8px;
         cursor: pointer;
-        font-weight: bold;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-weight: bold;
     }
 
-    .song-options:hover {
-        background-color: #e8e8ed;
+    .track-options:hover {
+        background-color: #d1d1d6;
         color: var(--accent);
     }
 
-    /* Notification Banner instead of wiping the screen */
-    .notification {
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 16px;
-        display: none;
-    }
-    
-    .notification.error {
-        background-color: #ffe5e5;
-        color: #d8000c;
-        display: block;
-    }
-    
-    .notification.info {
-        background-color: #e5f2ff;
-        color: #00529b;
-        display: block;
+    /* Bottom Player Styles */
+    .player {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background-color: var(--bg-player);
+        backdrop-filter: saturate(180%) blur(20px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 40px;
+        z-index: 1000;
+        justify-content: space-between;
     }
 
-    .lyrics-panel {
-        margin-top: 10px;
-        padding: 15px;
-        background-color: var(--hover-bg);
-        border-radius: 8px;
+    .player-info {
+        display: flex;
+        align-items: center;
+        width: 300px;
+    }
+
+    .player-art {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+        margin-right: 16px;
+        background-color: var(--border-color);
+        object-fit: cover;
+    }
+
+    .player-controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 600px;
+    }
+
+    .audio-element {
+        width: 100%;
+        height: 30px;
+        outline: none;
+    }
+
+    /* Lyrics Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
         display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .lyrics-modal {
+        background: var(--bg-main);
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        border-radius: 12px;
+        padding: 24px;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+    }
+
+    .close-btn {
+        background: none; border: none; font-size: 16px; 
+        color: var(--accent); cursor: pointer; font-weight: bold;
+    }
+
+    .lyrics-content {
         white-space: pre-wrap;
-        font-size: 14px;
-        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-primary);
+    }
+
+    /* Notifications */
+    .notification {
+        padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none;
+        background-color: #e5f2ff; color: #00529b;
     }
 </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-section">
-        <div class="header">Library</div>
-        <div class="tabs">
-            <div class="tab active" onclick="loadMusic('/api/library')">All Songs</div>
-            <!-- Example hardcoded playlist fetch. Replace ID with an actual UUID from your database later -->
-            <div class="tab" onclick="loadMusic('/api/playlists/YOUR-PLAYLIST-UUID/tracks')">Playlist 1</div>
+<!-- Sidebar Navigation -->
+<nav class="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-title">Apple Music</div>
+        <div class="nav-item active" onclick="loadLibrary()">Library</div>
+        <div class="nav-item">Recently Added</div>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">Playlists</div>
+        <div id="playlist-nav">
+            <!-- Playlists injected here -->
         </div>
     </div>
-    
+</nav>
+
+<!-- Main Content Area -->
+<main class="main-content">
+    <div id="view-title" class="header-title">Library</div>
     <div id="notification-banner" class="notification"></div>
-    <div id="song-container" class="song-list"></div>
+    <div id="track-list" class="track-list">
+        <!-- Tracks injected here -->
+    </div>
+</main>
+
+<!-- Bottom Persistent Player -->
+<div class="player">
+    <div class="player-info">
+        <img id="now-playing-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" class="player-art">
+        <div>
+            <div id="now-playing-title" class="track-title" style="margin-bottom: 2px;">Not Playing</div>
+            <div id="now-playing-artist" class="track-artist">--</div>
+        </div>
+    </div>
+    <div class="player-controls">
+        <audio id="audio-player" class="audio-element" controls></audio>
+    </div>
+    <div style="width: 300px;"></div> <!-- Spacer for center alignment -->
+</div>
+
+<!-- Lyrics Modal -->
+<div id="lyrics-modal" class="modal-overlay">
+    <div class="lyrics-modal">
+        <div class="modal-header">
+            <h3 id="lyrics-title" style="margin:0;">Lyrics</h3>
+            <button class="close-btn" onclick="closeLyrics()">Done</button>
+        </div>
+        <div id="lyrics-content" class="lyrics-content">Loading...</div>
+    </div>
 </div>
 
 <script>
+    // Ensure this perfectly matches your deployed Railway app
     const API_BASE = 'https://music-backend-production-10bd.up.railway.app'; 
+    const audioPlayer = document.getElementById('audio-player');
 
-    function showNotification(message, type = 'info') {
+    function notify(msg) {
         const banner = document.getElementById('notification-banner');
-        banner.textContent = message;
-        banner.className = `notification ${type}`;
+        banner.textContent = msg;
+        banner.style.display = 'block';
     }
 
-    function hideNotification() {
+    function hideNotify() {
         document.getElementById('notification-banner').style.display = 'none';
     }
 
-    async function loadMusic(endpoint) {
-        const container = document.getElementById('song-container');
-        container.innerHTML = ''; // Clear current tracks
-        hideNotification();
-        
+    // 1. Fetch Playlists for Sidebar
+    async function loadPlaylists() {
         try {
-            const response = await fetch(`${API_BASE}${endpoint}`);
-            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            const res = await fetch(`${API_BASE}/api/playlists`);
+            if (!res.ok) throw new Error('Failed to load playlists');
+            const data = await res.json();
             
-            const data = await response.json();
-            const songs = data.tracks; 
+            const nav = document.getElementById('playlist-nav');
+            nav.innerHTML = '';
             
-            if (!songs || songs.length === 0) {
-                showNotification('Your library is currently empty.', 'info');
-                return;
-            }
-
-            songs.forEach(song => {
-                const songWrapper = document.createElement('div');
-                
-                const songDiv = document.createElement('div');
-                songDiv.className = 'song-item';
-                
-                const coverSrc = song.artwork || 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='; 
-                
-                songDiv.innerHTML = `
-                    <img src="${coverSrc}" class="album-art">
-                    <div class="song-info">
-                        <div class="song-title">${song.title || song.filename || 'Unknown Title'}</div>
-                        <div class="song-artist">${song.artist || 'Unknown Artist'}</div>
-                    </div>
-                    <div class="song-options" title="Fetch Lyrics">...</div>
-                `;
-                
-                const lyricsPanel = document.createElement('div');
-                lyricsPanel.className = 'lyrics-panel';
-                
-                // Functional Lyrics Fetcher
-                const optionsBtn = songDiv.querySelector('.song-options');
-                optionsBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    
-                    if (lyricsPanel.style.display === 'block') {
-                        lyricsPanel.style.display = 'none';
-                        return;
-                    }
-
-                    lyricsPanel.style.display = 'block';
-                    lyricsPanel.textContent = 'Loading lyrics from am-lyrics...';
-
-                    try {
-                        const lyricRes = await fetch(`${API_BASE}/api/lyrics?title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.artist)}`);
-                        const lyricData = await lyricRes.json();
-                        
-                        if (lyricRes.ok) {
-                            lyricsPanel.textContent = lyricData.lyrics;
-                        } else {
-                            lyricsPanel.textContent = "Lyrics not found in repository.";
-                        }
-                    } catch (err) {
-                        lyricsPanel.textContent = "Failed to fetch lyrics.";
-                    }
-                });
-
-                // Play logic placeholder
-                songDiv.addEventListener('click', () => {
-                    console.log('Playing:', song.url); 
-                });
-
-                songWrapper.appendChild(songDiv);
-                songWrapper.appendChild(lyricsPanel);
-                container.appendChild(songWrapper);
+            data.playlists.forEach(pl => {
+                const item = document.createElement('div');
+                item.className = 'nav-item';
+                item.textContent = pl.name;
+                item.onclick = () => loadPlaylistTracks(pl.id, pl.name, item);
+                nav.appendChild(item);
             });
-            
-        } catch (error) {
-            console.error(error);
-            showNotification('Could not connect to the backend. UI structure preserved.', 'error');
+        } catch (e) {
+            console.error(e);
         }
     }
 
-    // Load main library on startup
-    document.addEventListener('DOMContentLoaded', () => loadMusic('/api/library'));
+    // 2. Load the main Library
+    async function loadLibrary() {
+        document.getElementById('view-title').textContent = 'Library';
+        setActiveNav(document.querySelector('.sidebar .nav-item')); // sets first item active
+        fetchAndRenderTracks(`${API_BASE}/api/library`);
+    }
+
+    // 3. Load specific Playlist tracks
+    async function loadPlaylistTracks(id, name, element) {
+        document.getElementById('view-title').textContent = name;
+        setActiveNav(element);
+        fetchAndRenderTracks(`${API_BASE}/api/playlists/${id}/tracks`);
+    }
+
+    function setActiveNav(element) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if(element) element.classList.add('active');
+    }
+
+    // 4. Shared function to render tracks to the UI
+    async function fetchAndRenderTracks(url) {
+        const container = document.getElementById('track-list');
+        container.innerHTML = '';
+        hideNotify();
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('API Error');
+            const data = await res.json();
+            const tracks = data.tracks || [];
+
+            if (tracks.length === 0) {
+                notify('No tracks found here.');
+                return;
+            }
+
+            tracks.forEach((track, index) => {
+                const row = document.createElement('div');
+                row.className = 'track-item';
+                
+                const art = track.artwork || 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
+                
+                row.innerHTML = `
+                    <img src="${art}" class="track-art">
+                    <div class="track-info">
+                        <div class="track-title">${track.title || track.filename}</div>
+                        <div class="track-artist">${track.artist || 'Unknown Artist'}</div>
+                    </div>
+                    <div class="track-album">${track.album || 'Unknown Album'}</div>
+                    <div class="track-options" title="View Lyrics">...</div>
+                `;
+
+                // Play song when clicking the row
+                row.querySelector('.track-info').addEventListener('click', () => playTrack(track, art));
+                
+                // Fetch lyrics when clicking '...'
+                row.querySelector('.track-options').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLyrics(track.title, track.artist);
+                });
+
+                container.appendChild(row);
+            });
+        } catch (e) {
+            console.error(e);
+            notify('Failed to connect to the server.');
+        }
+    }
+
+    // 5. Playback Logic
+    function playTrack(track, art) {
+        document.getElementById('now-playing-art').src = art;
+        document.getElementById('now-playing-title').textContent = track.title || track.filename;
+        document.getElementById('now-playing-artist').textContent = track.artist || 'Unknown';
+        
+        // Load the R2 URL into the player and start
+        audioPlayer.src = track.url;
+        audioPlayer.play();
+    }
+
+    // 6. Lyrics Logic
+    async function openLyrics(title, artist) {
+        const modal = document.getElementById('lyrics-modal');
+        const content = document.getElementById('lyrics-content');
+        const titleEl = document.getElementById('lyrics-title');
+        
+        modal.style.display = 'flex';
+        titleEl.textContent = `${title || 'Unknown'}`;
+        content.textContent = 'Loading lyrics from am-lyrics...';
+
+        try {
+            const res = await fetch(`${API_BASE}/api/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`);
+            const data = await res.json();
+            
+            if (res.ok) {
+                content.textContent = data.lyrics;
+            } else {
+                content.textContent = "We couldn't find lyrics for this track in the repository.";
+            }
+        } catch (e) {
+            content.textContent = "Failed to load lyrics.";
+        }
+    }
+
+    function closeLyrics() {
+        document.getElementById('lyrics-modal').style.display = 'none';
+    }
+
+    // Initialize the app on load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPlaylists();
+        loadLibrary();
+    });
 </script>
 </body>
 </html>
