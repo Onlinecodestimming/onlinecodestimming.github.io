@@ -7,7 +7,7 @@ const saved=()=>{try{return JSON.parse(localStorage.getItem("musicfy-favorites")
 const isFavorite=t=>saved().includes(String(t.id));
 const toggleFavorite=t=>{const ids=saved(),id=String(t.id),next=ids.includes(id)?ids.filter(x=>x!==id):[...ids,id];localStorage.setItem("musicfy-favorites",JSON.stringify(next));renderAll();updateFavoriteButton()};
 
-// PLAYLIST LOGIC (No backend required)
+// PLAYLIST LOGIC
 const getPlaylists = () => { try { return JSON.parse(localStorage.getItem("musicfy-playlists")||"[]") } catch { return [] }};
 const savePlaylists = (p) => localStorage.setItem("musicfy-playlists", JSON.stringify(p));
 
@@ -101,8 +101,10 @@ function openContextMenu(event, track) {
   document.addEventListener("click", () => menu.remove(), { once: true });
 }
 
+// Fixed dedicated handler for New Playlist creation
 $("createPlaylistBtn").onclick = (e) => {
   e.preventDefault();
+  e.stopPropagation();
   const name = prompt("Name your new playlist:");
   if (name) {
     let myPlaylists = getPlaylists();
@@ -141,8 +143,8 @@ function renderAll(){
   fill("playlistsPage",getPlaylists(),t=>{const c=card(t,{playlist:true}); return c;});
 }
 
-function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n.dataset.page===id));window.scrollTo(0,0)}
-function go(route){location.hash=route}
+function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".nav[data-page]").forEach(n=>n.classList.toggle("active",n.dataset.page===id));window.scrollTo(0,0)}
+function go(route){if(route) location.hash=route}
 function showAlbum(name){go(`album/${encodeURIComponent(name)}`)};
 function showArtist(name){go(`artist/${encodeURIComponent(name)}`)};
 function showPlaylist(p){go(`playlist/${p.id}`)};
@@ -219,7 +221,6 @@ function play(track, trackList = null){
   }
 }
 
-// Lyrics Sync Frame
 function syncLyrics() {
   const amLyrics = $("amLyricsEl");
   if (amLyrics && !audio.paused) {
@@ -249,7 +250,8 @@ audio.onloadedmetadata=()=>$("duration").textContent=format(audio.duration);
 $("progress").oninput=e=>{if(audio.duration)audio.currentTime=audio.duration*e.target.value/100};
 function format(s){if(!Number.isFinite(s))return"0:00";return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`}
 
-document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>b.dataset.action==="search"?$("sidebarSearch").focus():go(b.dataset.page));
+// Fixed selector: targets only buttons that specify a data-page
+document.querySelectorAll(".nav[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 $("sidebarSearch").oninput=e=>{const q=e.target.value.toLowerCase().trim();fill("libraryList",tracks.filter(t=>[t.title,t.artist,t.album].some(v=>String(v||"").toLowerCase().includes(q))),trackRow,tracks);go("library")};
 
 async function load(){
