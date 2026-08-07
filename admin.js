@@ -11,17 +11,29 @@ function getToken() { return sessionStorage.getItem('musicfy-admin-token') || ''
 function setToken(t) { sessionStorage.setItem('musicfy-admin-token', t); }
 function clearToken() { sessionStorage.removeItem('musicfy-admin-token'); }
 
+async function safeFetchJson(url, options = {}) {
+  const r = await fetch(url, options);
+  const contentType = r.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    const text = await r.text();
+    throw new Error(`Server returned HTML/non-JSON (${r.status}). Check backend routes.`);
+  }
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+  return data;
+}
+
 async function verifyToken(token) {
   try {
-    const r = await fetch(API + '/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } });
-    return r.status !== 403;
+    await safeFetchJson(API + '/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } });
+    return true;
   } catch { return false; }
 }
 
 async function tryUnlock(token) {
   lockError.textContent = '';
   const ok = await verifyToken(token);
-  if (!ok) { lockError.textContent = 'Incorrect token.'; return; }
+  if (!ok) { lockError.textContent = 'Incorrect token or server unreachable.'; return; }
   setToken(token);
   showDashboard();
 }
@@ -63,9 +75,7 @@ async function loadOverview() {
   const grid = document.getElementById('statsGrid');
   grid.innerHTML = '<div class="muted">Loading stats…</div>';
   try {
-    const r = await fetch(API + '/admin/stats', { headers: authHeaders() });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'Failed to load stats');
+    const j = await safeFetchJson(API + '/admin/stats', { headers: authHeaders() });
 
     grid.innerHTML = `
       <div class="stat-card"><div class="stat-value">${j.trackCount||0}</div><div class="stat-label">Tracks</div></div>
@@ -83,7 +93,7 @@ async function loadOverview() {
     pillR2.textContent = 'R2 storage: ' + (j.r2Configured ? 'connected' : 'not configured');
     pillR2.className = 'config-pill ' + (j.r2Configured ? 'ok' : 'bad');
   } catch (e) {
-    grid.innerHTML = '<div class="muted">Stats API not found or failing. Ensure your Node.js backend handles /admin/stats.</div>';
+    grid.innerHTML = `<div class="muted">Stats failed to load: ${e.message}</div>`;
   }
 }
 
@@ -97,13 +107,11 @@ announceForm.addEventListener('submit', async (ev) => {
   if (!message) return;
 
   try {
-    const r = await fetch(API + '/announcements', {
+    await safeFetchJson(API + '/announcements', {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ message, level: announceLevel.value })
     });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'Failed to post');
     announceMessage.value = ''; announceLevel.value = 'info';
     await loadAnnouncements(); await loadOverview();
   } catch (e) { alert(e.message || 'Failed to post announcement'); }
@@ -113,9 +121,7 @@ async function loadAnnouncements() {
   const list = document.getElementById('announcementsList');
   list.innerHTML = '<div class="muted">Loading…</div>';
   try {
-    const r = await fetch(API + '/announcements');
-    if (!r.ok) throw new Error();
-    const j = await r.json();
+    const j = await safeFetchJson(API + '/announcements');
     const items = j.announcements || [];
     list.innerHTML = '';
     if (items.length === 0) { list.innerHTML = '<div class="muted">No announcements yet.</div>'; return; }
@@ -132,16 +138,15 @@ async function loadAnnouncements() {
       el.querySelector('.a-delete').onclick = () => deleteAnnouncement(a.id);
       list.appendChild(el);
     });
-  } catch (e) { list.innerHTML = '<div class="muted">Announcements API not found. Update backend to support /announcements.</div>'; }
+  } catch (e) { list.innerHTML = `<div class="muted">Announcements error: ${e.message}</div>`; }
 }
 
 async function deleteAnnouncement(id) {
   if (!confirm('Delete this announcement?')) return;
   try {
-    const r = await fetch(API + '/announcements/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
-    if (!r.ok) throw new Error('Delete failed');
+    await safeFetchJson(API + '/announcements/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
     await loadAnnouncements(); await loadOverview();
-  } catch (e) { alert('Delete failed'); }
+  } catch (e) { alert('Delete failed: ' + e.message); }
 }
 
 let allTracks = [];
@@ -149,13 +154,11 @@ async function loadTracks() {
   const table = document.getElementById('tracksTable');
   table.innerHTML = '<div class="muted">Loading…</div>';
   try {
-    const r = await fetch(API + '/api/library');
-    const j = await r.json();
-    // Assuming backend returns standard format for library route
+    const j = await safeFetchJson(API + '/api/library');
     allTracks = j.tracks || j.data || []; 
     document.getElementById('trackCount').textContent = allTracks.length;
     renderTracks(allTracks);
-  } catch (e) { table.innerHTML = '<div class="muted">Couldn\'t load tracks.</div>'; }
+  } catch (e) { table.innerHTML = `<div class="muted">Couldn't load tracks: ${e.message}</div>`; }
 }
 
 function renderTracks(items) {
@@ -163,7 +166,6 @@ function renderTracks(items) {
   table.innerHTML = '';
   if (items.length === 0) { table.innerHTML = '<div class="muted">No tracks match.</div>'; return; }
   items.forEach(item => {
-    // Adapter if structure varies between /api/library and original /library
     const a = item.attributes || item; 
     const art = (a.artwork && a.artwork.url) || a.artwork || '';
     const row = document.createElement('div');
@@ -200,10 +202,9 @@ document.getElementById('trackFilter').addEventListener('input', (ev) => {
 async function deleteTrackAdmin(id, name) {
   if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
   try {
-    const r = await fetch(API + '/drive/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
-    if (!r.ok) throw new Error('Delete failed');
+    await safeFetchJson(API + '/drive/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
     await loadTracks(); await loadOverview();
-  } catch (e) { alert('Delete failed'); }
+  } catch (e) { alert('Delete failed: ' + e.message); }
 }
 
 let editingTrackId = null;
@@ -230,7 +231,7 @@ document.getElementById('teCancel').onclick = () => trackEditModal.classList.add
 document.getElementById('teSave').onclick = async () => {
   if (!teArtwork.value.trim()) { alert('Artwork URL is required.'); return; }
   try {
-    const r = await fetch(API + '/drive/edit', {
+    await safeFetchJson(API + '/drive/edit', {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
@@ -243,8 +244,6 @@ document.getElementById('teSave').onclick = async () => {
         artworkUrl: teArtwork.value.trim()
       })
     });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'Save failed');
     trackEditModal.classList.add('hidden');
     await loadTracks();
   } catch (e) { alert(e.message || 'Save failed'); }
