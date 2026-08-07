@@ -22,18 +22,43 @@
         padding: 20px 40px;
     }
 
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
     .header {
         font-size: 34px;
         font-weight: 700;
-        margin-bottom: 20px;
         letter-spacing: -0.5px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 15px;
+    }
+
+    .tab {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+    
+    .tab.active {
+        color: var(--accent);
     }
 
     .song-list {
         display: flex;
         flex-direction: column;
         gap: 8px;
-        max-width: 800px;
     }
 
     .song-item {
@@ -50,10 +75,6 @@
         cursor: pointer;
     }
 
-    .song-item:last-child {
-        border-bottom: none;
-    }
-
     .album-art {
         width: 48px;
         height: 48px;
@@ -61,20 +82,16 @@
         background-color: var(--border-color);
         margin-right: 16px;
         object-fit: cover;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .song-info {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        justify-content: center;
     }
 
     .song-title {
         font-size: 16px;
-        font-weight: 400;
-        margin-bottom: 2px;
         color: var(--text-primary);
     }
 
@@ -89,7 +106,6 @@
         padding: 8px;
         cursor: pointer;
         font-weight: bold;
-        letter-spacing: 2px;
         border-radius: 50%;
         width: 30px;
         height: 30px;
@@ -103,102 +119,149 @@
         color: var(--accent);
     }
 
-    .status-message {
-        color: var(--text-secondary);
-        font-size: 16px;
+    /* Notification Banner instead of wiping the screen */
+    .notification {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        display: none;
+    }
+    
+    .notification.error {
+        background-color: #ffe5e5;
+        color: #d8000c;
+        display: block;
+    }
+    
+    .notification.info {
+        background-color: #e5f2ff;
+        color: #00529b;
+        display: block;
     }
 
-    .error-message {
-        color: var(--accent);
-        font-weight: 500;
+    .lyrics-panel {
+        margin-top: 10px;
+        padding: 15px;
+        background-color: var(--hover-bg);
+        border-radius: 8px;
+        display: none;
+        white-space: pre-wrap;
+        font-size: 14px;
+        color: var(--text-secondary);
     }
 </style>
 </head>
 <body>
 
-<div class="header">Listen Now</div>
-<div id="song-container" class="song-list">
-    <p class="status-message">Loading your music...</p>
+<div class="container">
+    <div class="header-section">
+        <div class="header">Library</div>
+        <div class="tabs">
+            <div class="tab active" onclick="loadMusic('/api/library')">All Songs</div>
+            <!-- Example hardcoded playlist fetch. Replace ID with an actual UUID from your database later -->
+            <div class="tab" onclick="loadMusic('/api/playlists/YOUR-PLAYLIST-UUID/tracks')">Playlist 1</div>
+        </div>
+    </div>
+    
+    <div id="notification-banner" class="notification"></div>
+    <div id="song-container" class="song-list"></div>
 </div>
 
 <script>
-    // Updated to match your exact backend route
-    const BACKEND_URL = 'https://music-backend-production-10bd.up.railway.app/api/library'; 
+    const API_BASE = 'https://music-backend-production-10bd.up.railway.app'; 
 
-    async function loadMusic() {
+    function showNotification(message, type = 'info') {
+        const banner = document.getElementById('notification-banner');
+        banner.textContent = message;
+        banner.className = `notification ${type}`;
+    }
+
+    function hideNotification() {
+        document.getElementById('notification-banner').style.display = 'none';
+    }
+
+    async function loadMusic(endpoint) {
         const container = document.getElementById('song-container');
+        container.innerHTML = ''; // Clear current tracks
+        hideNotification();
         
         try {
-            const response = await fetch(BACKEND_URL);
+            const response = await fetch(`${API_BASE}${endpoint}`);
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // Parse the JSON and extract the 'tracks' array your backend sends
             const data = await response.json();
             const songs = data.tracks; 
             
-            container.innerHTML = ''; 
-            
             if (!songs || songs.length === 0) {
-                container.innerHTML = '<p class="status-message">No music found in the database.</p>';
+                showNotification('Your library is currently empty.', 'info');
                 return;
             }
 
             songs.forEach(song => {
+                const songWrapper = document.createElement('div');
+                
                 const songDiv = document.createElement('div');
                 songDiv.className = 'song-item';
                 
-                // Matches 'artwork' from your database
                 const coverSrc = song.artwork || 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='; 
                 
                 songDiv.innerHTML = `
-                    <img src="${coverSrc}" alt="Album Art" class="album-art">
+                    <img src="${coverSrc}" class="album-art">
                     <div class="song-info">
                         <div class="song-title">${song.title || song.filename || 'Unknown Title'}</div>
                         <div class="song-artist">${song.artist || 'Unknown Artist'}</div>
                     </div>
-                    <div class="song-options" title="More Options">...</div>
+                    <div class="song-options" title="Fetch Lyrics">...</div>
                 `;
                 
-                // Options menu and Lyrics Repository Integration
+                const lyricsPanel = document.createElement('div');
+                lyricsPanel.className = 'lyrics-panel';
+                
+                // Functional Lyrics Fetcher
                 const optionsBtn = songDiv.querySelector('.song-options');
                 optionsBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation(); 
+                    e.stopPropagation();
                     
-                    // Cross-referencing logic for external lyrics
-                    const lyricsBaseUrl = 'https://raw.githubusercontent.com/binimum/am-lyrics/main/';
-                    
-                    // You can adjust the formatting here based on how files are named in the repo
-                    const formattedFileName = encodeURIComponent(`${song.title} - ${song.artist}.lrc`); 
-                    const lyricsUrl = `${lyricsBaseUrl}${formattedFileName}`;
-                    
-                    console.log(`Menu opened for: ${song.title}`);
-                    console.log(`Fetching lyrics from: ${lyricsUrl}`);
-                    
-                    // Placeholder for UI dropdown/modal injection
+                    if (lyricsPanel.style.display === 'block') {
+                        lyricsPanel.style.display = 'none';
+                        return;
+                    }
+
+                    lyricsPanel.style.display = 'block';
+                    lyricsPanel.textContent = 'Loading lyrics from am-lyrics...';
+
+                    try {
+                        const lyricRes = await fetch(`${API_BASE}/api/lyrics?title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.artist)}`);
+                        const lyricData = await lyricRes.json();
+                        
+                        if (lyricRes.ok) {
+                            lyricsPanel.textContent = lyricData.lyrics;
+                        } else {
+                            lyricsPanel.textContent = "Lyrics not found in repository.";
+                        }
+                    } catch (err) {
+                        lyricsPanel.textContent = "Failed to fetch lyrics.";
+                    }
                 });
 
-                // Matches 'url' (R2 bucket link) from your database
+                // Play logic placeholder
                 songDiv.addEventListener('click', () => {
-                    console.log('Playing from R2 Storage:', song.url); 
-                    // Example audio player logic:
-                    // const audioPlayer = document.getElementById('my-audio');
-                    // audioPlayer.src = song.url;
-                    // audioPlayer.play();
+                    console.log('Playing:', song.url); 
                 });
 
-                container.appendChild(songDiv);
+                songWrapper.appendChild(songDiv);
+                songWrapper.appendChild(lyricsPanel);
+                container.appendChild(songWrapper);
             });
             
         } catch (error) {
-            console.error('Error fetching music:', error);
-            container.innerHTML = `<p class="error-message">Failed to load music from /api/library.</p>`;
+            console.error(error);
+            showNotification('Could not connect to the backend. UI structure preserved.', 'error');
         }
     }
 
-    document.addEventListener('DOMContentLoaded', loadMusic);
+    // Load main library on startup
+    document.addEventListener('DOMContentLoaded', () => loadMusic('/api/library'));
 </script>
 </body>
 </html>
