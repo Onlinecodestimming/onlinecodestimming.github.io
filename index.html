@@ -1,135 +1,194 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#fa2d55">
-  <title>Musicfy</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <!-- am-lyrics web component -->
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics/dist/src/am-lyrics.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Stream</title>
+<style>
+    :root {
+        --bg-color: #ffffff;
+        --text-primary: #1d1d1f;
+        --text-secondary: #86868b;
+        --border-color: #d2d2d7;
+        --hover-bg: #f5f5f7;
+        --accent: #fa243c; /* Apple Music Red */
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        margin: 0;
+        padding: 20px 40px;
+    }
+
+    .header {
+        font-size: 34px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: -0.5px;
+    }
+
+    .song-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 800px;
+    }
+
+    .song-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .song-item:hover {
+        background-color: var(--hover-bg);
+        cursor: pointer;
+    }
+
+    .song-item:last-child {
+        border-bottom: none;
+    }
+
+    .album-art {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+        background-color: var(--border-color);
+        margin-right: 16px;
+        object-fit: cover;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .song-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .song-title {
+        font-size: 16px;
+        font-weight: 400;
+        margin-bottom: 2px;
+        color: var(--text-primary);
+    }
+
+    .song-artist {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .song-options {
+        color: var(--text-secondary);
+        font-size: 18px;
+        padding: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        letter-spacing: 2px;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .song-options:hover {
+        background-color: #e8e8ed;
+        color: var(--accent);
+    }
+
+    .status-message {
+        color: var(--text-secondary);
+        font-size: 16px;
+    }
+
+    .error-message {
+        color: var(--accent);
+        font-weight: 500;
+    }
+</style>
 </head>
 <body>
-  <div class="glow"></div>
-  <div class="app">
-    <aside class="sidebar">
-      <a class="brand" href="#home"><b>♪</b>Musicfy</a>
-      <div class="sidebar-search">
-        <label>⌕ <input id="sidebarSearch" type="search" placeholder="Search library..."></label>
-      </div>
-      <nav aria-label="Main navigation">
-        <div class="nav-section">
-          <p class="nav-section-title">Listen now</p>
-          <button class="nav active" data-page="home">⌂ <span>Home</span></button>
-          <button class="nav" data-page="library">♫ <span>Library</span></button>
-        </div>
-        <div class="nav-section">
-          <p class="nav-section-title">Browse</p>
-          <button class="nav" data-page="albums">▣ <span>Albums</span></button>
-          <button class="nav" data-page="artists">◎ <span>Artists</span></button>
-        </div>
-        <div class="nav-section">
-          <p class="nav-section-title">Playlists</p>
-          <button class="nav" data-page="playlists">≣ <span>All Playlists</span></button>
-          <button class="nav" id="createPlaylistBtn">＋ <span>New Playlist</span></button>
-        </div>
-        <div class="nav-section">
-          <p class="nav-section-title">Your library</p>
-          <button class="nav" data-page="favorites">♥ <span>Favorites</span></button>
-        </div>
-      </nav>
-      <div class="sidebar-footer"><strong>Musicfy</strong>Your personal music library</div>
-    </aside>
-    
-    <main>
-      <section id="home" class="page active">
-        <p class="eyebrow">MUSICFY</p><h1>Listen now.</h1>
-        <article class="hero">
-          <div class="hero-copy">
-            <p class="eyebrow">PICKED FOR YOU</p><h2 id="heroTitle">Your next favorite</h2>
-            <p id="heroArtist">Loading your library…</p>
-            <button id="heroPlay" class="play">▶ Play</button>
-          </div>
-          <img id="heroArt" alt="">
-        </article>
+
+<div class="header">Listen Now</div>
+<div id="song-container" class="song-list">
+    <p class="status-message">Loading your music...</p>
+</div>
+
+<script>
+    // 1. Point this exactly to your live backend route that returns your songs
+    const BACKEND_URL = 'https://music-backend-production-10bd.up.railway.app/songs'; 
+
+    async function loadMusic() {
+        const container = document.getElementById('song-container');
         
-        <h2>Heavy Rotation</h2>
-        <div id="heavyRotationRow" class="grid"></div>
-        <h2>Suggestions For You</h2>
-        <div id="suggestionsRow" class="grid"></div>
-        <h2>Recently added</h2>
-        <div id="recentRow" class="grid"></div>
-        <h2>Albums</h2>
-        <div id="albumRow" class="grid"></div>
-        <h2>Artists</h2>
-        <div id="artistRow" class="grid artists"></div>
-      </section>
-      
-      <section id="library" class="page">
-        <p class="eyebrow">YOUR COLLECTION</p><h1>Library</h1>
-        <div id="libraryList" class="list"></div>
-      </section>
-      
-      <section id="albums" class="page">
-        <p class="eyebrow">BROWSE</p><h1>Albums</h1>
-        <div id="albumsPage" class="grid"></div>
-      </section>
-      
-      <section id="artists" class="page">
-        <p class="eyebrow">BROWSE</p><h1>Artists</h1>
-        <div id="artistsPage" class="grid artists"></div>
-      </section>
+        try {
+            // Fetch the music data from your server
+            const response = await fetch(BACKEND_URL);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Assuming your backend sends an array of JSON objects
+            const songs = await response.json();
+            
+            // Clear out the loading text
+            container.innerHTML = ''; 
+            
+            if (!songs || songs.length === 0) {
+                container.innerHTML = '<p class="status-message">No music found in the database.</p>';
+                return;
+            }
 
-      <section id="playlists" class="page">
-        <p class="eyebrow">YOUR MIXES</p><h1>Playlists</h1>
-        <div id="playlistsPage" class="grid"></div>
-      </section>
-      
-      <section id="favorites" class="page">
-        <p class="eyebrow">YOUR PICKS</p><h1>Favorites</h1>
-        <div id="favoritesList" class="list"></div>
-      </section>
-      
-      <section id="detail" class="page">
-        <p id="detailEyebrow" class="eyebrow">MUSICFY</p><h1 id="detailTitle">Collection</h1>
-        <div id="detailList" class="list"></div>
-      </section>
-    </main>
-  </div>
-  
-  <footer id="playerEl" class="player" aria-label="Music player">
-    <div class="now-playing">
-      <img id="playerArt" alt="" hidden>
-      <div class="song"><strong id="songTitle">Nothing playing</strong><span id="songArtist">Choose a song to begin</span></div>
-    </div>
-    
-    <div class="lyrics-container">
-      <am-lyrics id="amLyricsEl"></am-lyrics>
-    </div>
+            // Loop through the database data and build the UI
+            songs.forEach(song => {
+                const songDiv = document.createElement('div');
+                songDiv.className = 'song-item';
+                
+                // Uses your database cover art, or a blank gray square if missing
+                const coverSrc = song.coverArt || 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='; 
+                
+                songDiv.innerHTML = `
+                    <img src="${coverSrc}" alt="Album Art" class="album-art">
+                    <div class="song-info">
+                        <div class="song-title">${song.title || 'Unknown Title'}</div>
+                        <div class="song-artist">${song.artist || 'Unknown Artist'}</div>
+                    </div>
+                    <div class="song-options" title="More Options">...</div>
+                `;
+                
+                // Handle clicking the "..." button independently from playing the song
+                const optionsBtn = songDiv.querySelector('.song-options');
+                optionsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Stops the song from playing when clicking options
+                    console.log('Opened menu for:', song.title);
+                    // Add your dropdown logic here
+                });
 
-    <div class="center">
-      <div class="controls">
-        <button id="shuffle" aria-label="Shuffle">⇄</button>
-        <button id="previous" aria-label="Previous">⏮</button>
-        <button id="play" class="main" aria-label="Play">▶</button>
-        <button id="next" aria-label="Next">⏭</button>
-        <button id="repeat" aria-label="Repeat">↻</button>
-      </div>
-      <div class="progress">
-        <span id="currentTime">0:00</span>
-        <input id="progress" type="range" min="0" max="100" value="0">
-        <span id="duration">0:00</span>
-      </div>
-    </div>
-    <div class="player-actions">
-      <button id="favorite" class="heart" aria-label="Favorite">♡</button>
-      <button id="fullscreenToggle" class="heart" aria-label="Fullscreen">⛶</button>
-      <span aria-hidden="true">⌁</span>
-      <input id="volume" aria-label="Volume" type="range" min="0" max="100" value="100">
-    </div>
-    <audio id="audio" preload="metadata"></audio>
-  </footer>
-  <script src="frontend.js"></script>
+                // Play the song when clicking anywhere else on the row
+                songDiv.addEventListener('click', () => {
+                    console.log('Playing:', song.title);
+                    // Add your audio player logic here (e.g., updating the <audio> tag src)
+                });
+
+                container.appendChild(songDiv);
+            });
+            
+        } catch (error) {
+            console.error('Error fetching music:', error);
+            container.innerHTML = `<p class="error-message">Failed to load music. Ensure your backend is running and CORS is configured.</p>`;
+        }
+    }
+
+    // Trigger the fetch as soon as the page loads
+    document.addEventListener('DOMContentLoaded', loadMusic);
+</script>
 </body>
 </html>
